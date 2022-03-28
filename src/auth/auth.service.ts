@@ -48,7 +48,7 @@ export class AuthService {
      * we usualy use update, but in this case, we wanna call database when condition hashRt only null (prevent spam logout)
      * we cannot set condition hashRt null in update, because we only get condition by something unique like ID
      */
-    console.log('user ID Logout', userId);
+    // console.log('user ID Logout', userId);
     await this.prisma.user.updateMany({
       where: {
         id: userId,
@@ -62,15 +62,16 @@ export class AuthService {
     });
   }
   async refreshToken(userId: number, rt: string) {
-    console.log('User ID Refresh', userId);
-    console.log('RT Refresh', rt);
+    // console.log('User ID Refresh', userId);
+    // console.log('RT Refresh', rt);
     const user = await this.prisma.user.findUnique({
       where: {
         id: userId,
       },
     });
 
-    if (!user) throw new ForbiddenException('User not found');
+    if (!user || !user.hashedRt || !rt)
+      throw new ForbiddenException('Access denied');
     const rtMatches = await bcrypt.compare(rt, user.hashedRt);
     if (!rtMatches) throw new ForbiddenException('Access denied');
 
